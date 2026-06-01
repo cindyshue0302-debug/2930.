@@ -1,0 +1,8 @@
+name: quiz_env
+channels:
+  - defaults
+dependencies:
+  - python=3.9
+  - jupyter
+  - notebook
+  - pip
