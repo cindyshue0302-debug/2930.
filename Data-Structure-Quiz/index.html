@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>資料結構測驗網站</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background-color: #f0f4f8; color: #333; line-height: 1.6; }
+        .container { max-width: 800px; margin: 0 auto; background-color: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); }
+        h1, h2, h3 { color: #2c3e50; text-align: center; }
+        .page { display: none; }
+        .page.active { display: block; }
+        .home-desc { text-align: center; font-size: 1.1em; color: #555; margin-bottom: 30px; }
+        .main-buttons { display: flex; justify-content: center; flex-wrap: wrap; gap: 15px; }
+        .nickname-box { background-color: #f8f9fa; border: 1px solid #e2e8f0; padding: 20px; border-radius: 8px; margin: 0 auto 25px auto; max-width: 400px; text-align: center; }
+        .nickname-box label { display: block; font-weight: bold; margin-bottom: 10px; color: #4a5568; }
+        .nickname-box input { width: 80%; padding: 10px; font-size: 1em; border: 2px solid #cbd5e1; border-radius: 6px; outline: none; text-align: center; transition: border-color 0.2s; }
+        .nickname-box input:focus { border-color: #3498db; }
+        .quiz-header { display: flex; justify-content: space-between; font-size: 1.1em; font-weight: bold; color: #34495e; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 20px; }
+        .question-box { margin-bottom: 25px; font-size: 1.15em; }
+        .options label { display: block; margin-bottom: 12px; cursor: pointer; padding: 12px; border-radius: 6px; background-color: #f9f9f9; border: 1px solid #e0e0e0; transition: all 0.2s; }
+        .options label:hover { background-color: #eef2f5; border-color: #3498db; }
+        .options input[type="radio"] { margin-right: 10px; }
+        .nav-buttons { display: flex; justify-content: space-between; margin-top: 30px; }
+        
+        /* 按鈕顏色配置 */
+        button { color: white; padding: 12px 24px; border: none; border-radius: 5px; cursor: pointer; font-size: 1.05em; font-weight: bold; transition: background-color 0.3s; }
+        button.primary { background-color: #3498db; }
+        button.primary:hover { background-color: #2980b9; }
+        button.secondary { background-color: #95a5a6; }
+        button.secondary:hover { background-color: #7f8c8d; }
+        button.success { background-color: #2ecc71; }
+        button.success:hover { background-color: #27ae60; }
+        button.warning { background-color: #e67e22; }
+        button.warning:hover { background-color: #d35400; }
+        button.info { background-color: #8e44ad; }
+        button.info:hover { background-color: #732d91; }
+        
+        .score-board { text-align: center; background-color: #e8f6f3; padding: 20px; border-radius: 8px; margin-bottom: 30px; }
+        .score-board h2 { color: #16a085; font-size: 2em; margin: 0; }
+        .analysis-box { display: flex; gap: 20px; margin-bottom: 30px; flex-wrap: wrap; }
+        .analysis-card { flex: 1; min-width: 250px; padding: 15px; border-radius: 8px; border: 1px solid #ddd; }
+        .analysis-card.strength { background-color: #f1f9f5; border-color: #a3e4d7; }
+        .analysis-card.weakness { background-color: #fdf2f2; border-color: #f5b7b1; }
+        .analysis-card h4 { margin-top: 0; margin-bottom: 10px; font-size: 1.1em; }
+        .analysis-card ul { padding-left: 20px; margin: 0; font-size: 0.95em; color: #555; }
+        .result-item { border: 1px solid #ddd; border-radius: 8px; padding: 15px; margin-bottom: 20px; }
+        .result-item h4 { margin-top: 0; color: #2c3e50; }
+        .correct-text { color: #27ae60; font-weight: bold; }
+        .wrong-text { color: #c0392b; font-weight: bold; }
+        .explanation { background-color: #f8f9f9; border-left: 4px solid #3498db; padding: 10px 15px; margin-top: 15px; border-radius: 0 4px 4px 0; font-size: 0.95em; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        th, td { padding: 12px; text-align: center; border-bottom: 1px solid #ddd; }
+        th { background-color: #3498db; color: white; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        .center-btn { text-align: center; margin-top: 20px; }
+
+        /* 歷史紀錄專用樣式 */
+        .history-card { background-color: #fff; border: 1px solid #ccc; border-radius: 8px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .history-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 10px; }
+        .history-header h4 { margin: 0; color: #2980b9; }
+        .history-wrong-list { list-style-type: none; padding: 0; margin: 0; }
+        .history-wrong-list li { background-color: #fdf2f2; border-left: 3px solid #e74c3c; padding: 10px; margin-bottom: 8px; font-size: 0.95em; }
+    </style>
+</head>
+<body>
+<div class="container">
+    
+    <div id="page-home" class="page active">
+        <h1>資料結構與程式設計測驗網站</h1>
+        <p class="home-desc">抽題範圍：陣列與串列 (共 10 題) | 測驗時間：30 分鐘<br><span style="color:#3498db; font-weight:bold;">★ 系統具備：選項隨機打亂、錯題補考、專屬排行榜與作答紀錄</span></p>
+        <div class="nickname-box">
+            <label for="username-input">請輸入您的測驗暱稱：</label>
+            <input type="text" id="username-input" placeholder="例如：資結小學霸" maxlength="10">
+        </div>
+        <div class="main-buttons">
+            <button class="success" onclick="startQuiz(false)">開始全新測驗</button>
+            <button class="secondary" onclick="showPage('page-leaderboard'); renderLeaderboard();">查看單機排行榜</button>
+            <button class="info" onclick="showPage('page-history'); renderHistory();">查看歷史紀錄</button>
+        </div>
+    </div>
+
+    <div id="page-quiz" class="page">
+        <div class="quiz-header">
+            <span id="progress-text"></span>
+            <span id="timer-text">剩餘時間：30分 00秒</span>
+        </div>
+        <div class="question-box">
+            <div id="question-text" style="font-weight: bold; margin-bottom: 15px;"></div>
+            <div id="options-area" class="options"></div>
+        </div>
+        <div style="color: #e74c3c; font-weight: bold; text-align: center; height: 20px;" id="error-msg"></div>
+        <div class="nav-buttons">
+            <button id="btn-prev" class="secondary" onclick="prevQuestion()">上一題</button>
+            <button id="btn-next" class="success" onclick="nextQuestion()">下一題</button>
+        </div>
+    </div>
+
+    <div id="page-result" class="page">
+        <div class="score-board">
+            <h2>測驗結果</h2>
+            <h3 id="final-score"></h3>
+            <p id="final-time"></p>
+        </div>
+        <div class="analysis-box">
+            <div class="analysis-card strength">
+                <h4 style="color: #16a085;">🌟 您的拿手知識點 (答對)</h4>
+                <ul id="strength-list"></ul>
+            </div>
+            <div class="analysis-card weakness">
+                <h4 style="color: #c0392b;">🔍 需要加強的弱點 (答錯)</h4>
+                <ul id="weakness-list"></ul>
+            </div>
+        </div>
+        <div id="details-area"></div>
+        <div class="main-buttons" style="margin-top: 30px;">
+            <button id="btn-review-wrong" class="warning" style="display: none;" onclick="startQuiz(true)"></button>
+            <button class="success" onclick="goToHomeAndFocus()">再測一次全新題目</button>
+            <button class="secondary" onclick="showPage('page-home')">返回首頁</button>
+        </div>
+    </div>
+
+    <div id="page-leaderboard" class="page">
+        <h1>排行榜 (Top 10)</h1>
+        <p style="text-align:center; color:#7f8c8d; font-size:0.9em;">(資料安全保存在您當前的設備瀏覽器中)</p>
+        <table>
+            <thead><tr><th>名次</th><th>玩家暱稱</th><th>測驗日期</th><th>得分</th><th>花費時間</th></tr></thead>
+            <tbody id="leaderboard-body"></tbody>
+        </table>
+        <div class="center-btn"><button class="secondary" onclick="showPage('page-home')">返回首頁</button></div>
+    </div>
+
+    <div id="page-history" class="page">
+        <h1>我的歷史作答紀錄</h1>
+        <p style="text-align:center; color:#7f8c8d; font-size:0.9em;">(僅保存在本設備，方便檢視過去弱點)</p>
+        <div id="history-container"></div>
+        <div class="center-btn"><button class="secondary" onclick="showPage('page-home')">返回首頁</button></div>
+    </div>
+</div>
+
+<script>
+    // --- 完整 27 題庫 (維持原樣不需更動，程式會自動打亂) ---
+    const quizData = [
+        { question: "1. 「陣列」是屬於下列何種資料結構？", options: ["(A) 動態", "(B) 靜態", "(C) 以上皆非"], correct_answer: "(B) 靜態", logic_design: "陣列基本概念與靜態結構", explanation: "陣列是靜態資料結構，大小固定且記憶體連續。" },
+        { question: "2. 下列何者是「陣列」的特色？", options: ["(A) 建立後可以變動", "(B) 可以儲存不同的資料型態", "(C) 記憶體空間具有連續性", "(D) 根據鍵值計算存取的位置"], correct_answer: "(C) 記憶體空間具有連續性", logic_design: "陣列基本概念與靜態結構", explanation: "連續記憶體空間使得透過索引存取元素非常高效。" },
+        { question: "3. 下列有關「陣列」的敘述，何者正確？", options: ["(A) 陣列可以動態改變大小", "(B) 陣列在建立時必須定義其大小，無法改變", "(C) 陣列在記憶體中不具連續性", "(D) 陣列容許不同的資料型態"], correct_answer: "(B) 陣列在建立時必須定義其大小，無法改變", logic_design: "陣列基本概念與靜態結構", explanation: "陣列為靜態結構，建立即固定。若需動態改變大小，須使用動態陣列(如 List)或鏈結串列。" },
+        { question: "4. 「陣列」在存取某元素時，時間複雜度為何？", options: ["(A) O(1)", "(B) O(log n)", "(C) O(n)", "(D) O(2^n)", "(E) 以上皆非"], correct_answer: "(A) O(1)", logic_design: "資料結構的時間複雜度觀念", explanation: "由於連續記憶體，可直接透過索引計算位址，存取時間為常數 O(1)。" },
+        { question: "5. 若某「一維陣列」的長度為100，每個元素需要4個位元組 (bytes)，則儲存這個陣列共需多少位元組 (bytes)？", options: ["(A) 100", "(B) 200", "(C) 400", "(D) 500", "(E) 以上皆非"], correct_answer: "(C) 400", logic_design: "記憶體空間計算", explanation: "100 元素 × 4 bytes = 400 bytes。" },
+        { question: "6. 若某「二維陣列」的維度為10×10，每個元素需要4個位元組 (bytes)，則儲存這個陣列共需多少位元組 (bytes)？", options: ["(A) 100", "(B) 200", "(C) 400", "(D) 500", "(E) 以上皆非"], correct_answer: "(C) 400", logic_design: "記憶體空間計算", explanation: "總元素 100 個，100 × 4 = 400 bytes。" },
+        { question: "7. 考慮下列的「二維陣列」：\n1, 2, 3\n4, 5, 6\n7, 8, 9\n若是「以列為主」的記憶體空間配置，則儲存的順序為何？", options: ["(A) 1, 2, 3, 4, 5, 6, 7, 8, 9", "(B) 1, 4, 7, 2, 5, 8, 3, 6, 9", "(C) 1, 5, 9, 2, 6, 7, 3, 4, 8", "(D) 1, 3, 2, 6, 4, 5, 9, 7, 8"], correct_answer: "(A) 1, 2, 3, 4, 5, 6, 7, 8, 9", logic_design: "二維陣列記憶體位址(Row/Column-major)", explanation: "以列為主(Row-major)是從左到右，先存第一列，再存第二列。" },
+        { question: "8. 承上題，若是「以行為主」的記憶體空間配置，則儲存的順序為何？", options: ["(A) 1, 2, 3, 4, 5, 6, 7, 8, 9", "(B) 1, 4, 7, 2, 5, 8, 3, 6, 9", "(C) 1, 5, 9, 2, 6, 7, 3, 4, 8", "(D) 1, 3, 2, 6, 4, 5, 9, 7, 8"], correct_answer: "(B) 1, 4, 7, 2, 5, 8, 3, 6, 9", logic_design: "二維陣列記憶體位址(Row/Column-major)", explanation: "以行為主(Column-major)是從上到下，先存第一行，再存第二行。" },
+        { question: "9. 若某「二維陣列」A的維度為3*3，初始位址為1,000，每個元素均為整數，需要4個位元組 (bytes) 儲存。若是「以列為主」的記憶體配置，則A[1][2]的位址為何？", options: ["(A) 1012", "(B) 1024", "(C) 1016", "(D) 1020", "(E) 以上皆非"], correct_answer: "(D) 1020", logic_design: "二維陣列記憶體位址(Row/Column-major)", explanation: "位址 = 1000 + (1 * 3 + 2) * 4 = 1000 + 20 = 1020。" },
+        { question: "10. 承上題，若是「以行為主」的記憶體配置，則A[1][2]的位址為何？", options: ["(A) 1012", "(B) 1024", "(C) 1016", "(D) 1020", "(E) 以上皆非"], correct_answer: "(E) 以上皆非", logic_design: "二維陣列記憶體位址(Row/Column-major)", explanation: "位址 = 1000 + (2 * 3 + 1) * 4 = 1028，不在選項中。" },
+        { question: "11. 考慮下列的矩陣：A = [[1, 2], [3, 4]]、B = [[2, 4], [3, 1]] 則「矩陣乘法」的結果為何？", options: ["(A)[[4,6],[10,12]]", "(B)[[4,6],[12,10]]", "(C)[[2,8],[9,4]]", "(D)[[2,8].[4.9]]", "(E) 以上皆非"], correct_answer: "(E) 以上皆非", logic_design: "矩陣運算邏輯", explanation: "結果應為 [[8, 6], [18, 16]]，均不符。" },
+        { question: "12. 「矩陣加法」的演算法時間複雜度為何？(程式碼雙層迴圈 n 次)", options: ["(A) O(n)", "(B) O(n^2)", "(C) O(n^3)", "(D) O(2^n)", "(E) 以上皆非"], correct_answer: "(B) O(n^2)", logic_design: "資料結構的時間複雜度觀念", explanation: "遍歷 n×n 矩陣的每個元素，時間為 O(n²)。" },
+        { question: "13. 「矩陣乘法」的演算法時間複雜度為何？(程式碼三層迴圈 n 次)", options: ["(A) O(n)", "(B) O(n^2)", "(C) O(n^3)", "(D) O(2^n)", "(E) 以上皆非"], correct_answer: "(C) O(n^3)", logic_design: "資料結構的時間複雜度觀念", explanation: "三個嵌套迴圈皆執行 n 次，總時間為 O(n³)。" },
+        { question: "14. Horner’s Rule的目的為何？", options: ["(A) 解線性方程式系統", "(B) 求多項式的根", "(C) 求多項式的函數值", "(D) 計算矩陣的行列式"], correct_answer: "(C) 求多項式的函數值", logic_design: "多項式與 Horner's Rule", explanation: "減少乘法與加法次數，高效計算多項式函數值。" },
+        { question: "15. 若多項式的次數為n，則Horner’s Rule的時間複雜度為何？", options: ["(A) O(1)", "(B) O(n)", "(C) O(n^2)", "(D) O(2^n)", "(E) 以上皆非"], correct_answer: "(B) O(n)", logic_design: "資料結構的時間複雜度觀念", explanation: "只需 n 次乘法與加法，為 O(n)。" },
+        { question: "16. 考慮下列的多項式：\np1(x) = 3x^3 + 2x^2 -x + 5\np2(x) = x^3 - 4x^2 + 2x – 3\n則多項式加法p1(x) + p2(x)的結果為何？", options: ["(A) 2x^3 - 2x^2 +x + 2", "(B) 4x^3 - 6x^2 +x + 2", "(C) 4x^3 - 2x^2 +x + 2", "(D) 4x^3 - 2x^2 +x - 2"], correct_answer: "(C) 4x^3 - 2x^2 +x + 2", logic_design: "多項式與 Horner's Rule", explanation: "係數相加即得。" },
+        { question: "17. 考慮下列的多項式：\np1(x) = 2x + 3\np2(x) = x^2 - x + 1\n則多項式乘法p1(x) ‧ p2(x)的結果為何？", options: ["(A) 2x^3 - 2x^2 + 2x + 3", "(B) 2x^3 - 5x^2 +5x + 3", "(C) 2x^3 + x^2 -x + 3", "(D) 2x^3 + x^2 -x + 6"], correct_answer: "(C) 2x^3 + x^2 -x + 3", logic_design: "多項式與 Horner's Rule", explanation: "展開合併同類項即得。" },
+        { question: "18. 「魔術方塊」的特性為何？", options: ["(A) 魔術方塊內的數字均為質數", "(B) 列、行或對角線的總和都相等", "(C) 魔術方塊內的數字均為偶數", "(D) 魔術方塊內的數字均為奇數"], correct_answer: "(B) 列、行或對角線的總和都相等", logic_design: "特殊演算法觀念應用", explanation: "幻方特性即為行列、對角線總和相等。" },
+        { question: "19. 某農夫有一個籠子，裡面有雞和兔子。已知總共有30隻，且總共有80隻腳。請問籠子裡有幾隻兔子？", options: ["(A) 10", "(B) 15", "(C) 20", "(D) 25", "(E) 以上皆非"], correct_answer: "(A) 10", logic_design: "基礎邏輯與數學運算", explanation: "雞C兔R，C+R=30，2C+4R=80，解得R=10。" },
+        { question: "20. 考慮「n- 皇后」問題，將n 個皇后放入n *n 的棋盤，而且皇后不會互相吃到對方，共有幾種可能的解？", options: ["(A) 1", "(B) n", "(C) n^2", "(D) 不一定，視n的值而定"], correct_answer: "(D) 不一定，視n的值而定", logic_design: "特殊演算法觀念應用", explanation: "為NP-Complete問題，隨n值複雜變化。" },
+        { question: "21. 請問「騎士巡邏」問題的目的為何？", options: ["(A) 將n個騎士放入n × n的棋盤，而且都不會互相吃到對方", "(B) 找到一條路徑，從出發點開始，每個格子只能走訪一次，而且所有的格子都走訪完畢", "(C) 已知對手國王的位置，決定騎士可以吃掉對手國王的走法", "(D) 找到騎士從左上角到右下角的最短路徑"], correct_answer: "(B) 找到一條路徑，從出發點開始，每個格子只能走訪一次，而且所有的格子都走訪完畢", logic_design: "特殊演算法觀念應用", explanation: "Knight's Tour 目標為走訪所有格子且不重複。" },
+        { question: "22. 考慮n*n的棋盤，則「騎士巡邏」問題的可能解有幾種？", options: ["(A) 1", "(B) n", "(C) n^2", "(D) 不一定，視騎士的出發點而定"], correct_answer: "(D) 不一定，視騎士的出發點而定", logic_design: "特殊演算法觀念應用", explanation: "解的數量取決於棋盤大小和起始位置。" },
+        { question: "23. 在 Python 中，若使用索引（Index）直接存取 list（其底層為動態陣列）中的任意元素，其時間複雜度（Time Complexity）為何？", options: ["(A) O(1)", "(B) O(log n)", "(C) O(n)", "(D) O(n^2)"], correct_answer: "(A) O(1)", logic_design: "Python List 時間複雜度與陣列存取", explanation: "Python 的 list 在底層是用連續的記憶體空間（陣列）來實作。因此透過索引存取為 O(1)。" },
+        { question: "24. 假設一個 Python list 內已有 n 個元素，現在使用 list.insert(0, value) 在該列表的最前端插入一個新元素。請問這個操作在最壞情況下的時間複雜度為何？", options: ["(A) O(1)", "(B) O(log n)", "(C) O(n)", "(D) O(n log n)"], correct_answer: "(C) O(n)", logic_design: "陣列插入元素時間複雜度", explanation: "插入最前端時，原本的 n 個元素都必須依序向後移動，最壞情況為 O(n)。" },
+        { question: "25. 在 Python 中處理一個代表二維陣列的嵌套列表 matrix = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]。若想要取得數字 6，下列哪一個語法是正確且不會報錯的？", options: ["(A) matrix[2][1]", "(B) matrix[1][2]", "(C) matrix[1, 2]", "(D) matrix(1)(2)"], correct_answer: "(B) matrix[1][2]", logic_design: "二維陣列存取邏輯", explanation: "數字 6 位於第二個子列表（索引 1）中的第三個元素（索引 2），故為 matrix[1][2]。" },
+        { question: "26. Python 的 list 屬於動態陣列，當預留空間不足時會自動擴容。請問使用 append() 方法在列表末尾添加一個元素，其均攤時間複雜度為何？", options: ["(A) O(1)", "(B) O(log n)", "(C) O(n)", "(D) O(n^2)"], correct_answer: "(A) O(1)", logic_design: "動態陣列擴容與均攤時間複雜度", explanation: "擴容花費 O(n)，但頻率極低。平均分配到每次 append 中，絕大多數操作只需 O(1)。" },
+        { question: "27. 關於 Python 內建的 list 與內建 array 模組的特性比較，下列敘述何者錯誤？", options: ["(A) list 可以同時存放不同資料型態的元素。", "(B) array 模組建立的陣列，必須是相同的基本資料型態。", "(C) array 模組通常比 list 更節省空間。", "(D) array 模組支援直接建立多維陣列，而 list 則無法做到。"], correct_answer: "(D) array 模組支援直接建立多維陣列，而 list 則無法做到。", logic_design: "Python List 與 Array 模組特性比較", explanation: "Python 內建的 array 模組僅支援一維陣列。若需多維矩陣需依賴 list 嵌套或 NumPy。" }
+    ];
+
+    let selectedQuestions = [];
+    let currentQuestionIndex = 0;
+    let userAnswers = []; 
+    let startTime, timerInterval;
+    let currentNickname = "匿名玩家"; 
+    let wrongQuestionsToReview = []; 
+    let isCurrentReviewMode = false;
+    const QUIZ_DURATION_SECONDS = 1800;
+    const TARGET_QUESTION_COUNT = 10;
+
+    // --- 頁面切換與工具 ---
+    function showPage(pageId) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById(pageId).classList.add('active');
+    }
+    function shuffleArray(array) {
+        let arr = [...array];
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+    }
+    function formatTime(seconds) {
+        const m = Math.floor(seconds / 60); const s = seconds % 60;
+        return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }
+    function goToHomeAndFocus() { showPage('page-home'); document.getElementById('username-input').focus(); }
+
+    // --- 題目與選項準備核心邏輯 ---
+    function prepareQuestions() {
+        let groups = [], currentGroup = [];
+        
+        // 1. 維持承上題不被打散的邏輯
+        for (let i = 0; i < quizData.length; i++) {
+            if (quizData[i].question.includes("承上題") && currentGroup.length > 0) {
+                currentGroup.push(quizData[i]);
+            } else {
+                if (currentGroup.length > 0) groups.push(currentGroup);
+                currentGroup = [quizData[i]];
+            }
+        }
+        if (currentGroup.length > 0) groups.push(currentGroup);
+        groups = shuffleArray(groups);
+
+        let finalSelection = [];
+        for (let group of groups) {
+            if (finalSelection.length + group.length <= TARGET_QUESTION_COUNT) {
+                
+                // 2. 針對每一題進行選項隨機打亂
+                group.forEach(q => {
+                    let newQ = { ...q, options: [...q.options] }; // 深拷貝選項，避免污染原始題庫
+                    
+                    // 去除舊的 (A) (B) (C) (D) 前綴，取得純文字
+                    let rawOptions = newQ.options.map(opt => opt.replace(/^\([A-E]\)\s*/, '').trim());
+                    let rawCorrect = newQ.correct_answer.replace(/^\([A-E]\)\s*/, '').trim();
+
+                    // 【防呆機制】：檢查是否有「以上皆非」或「以上皆是」，將其保留在最後不參與打亂
+                    let hasAllOrNone = false;
+                    let lastOptText = "";
+                    let lastOptIndex = rawOptions.length - 1;
+                    if (rawOptions[lastOptIndex].includes("以上皆非") || rawOptions[lastOptIndex].includes("以上皆是")) {
+                        hasAllOrNone = true;
+                        lastOptText = rawOptions.pop(); // 暫時移除最後一個選項
+                    }
+
+                    // 對剩餘的一般選項進行隨機打亂
+                    for (let i = rawOptions.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [rawOptions[i], rawOptions[j]] = [rawOptions[j], rawOptions[i]];
+                    }
+
+                    // 若剛才有移除「以上皆非/是」，現在把它加回陣列最後面
+                    if (hasAllOrNone) {
+                        rawOptions.push(lastOptText);
+                    }
+
+                    // 3. 重新賦予 (A) (B) (C) (D) 標籤，並更新該題的 correct_answer
+                    const prefixes = ["(A)", "(B)", "(C)", "(D)", "(E)"];
+                    newQ.options = rawOptions.map((opt, idx) => `${prefixes[idx]} ${opt}`);
+                    
+                    let newCorrectIdx = rawOptions.indexOf(rawCorrect);
+                    if (newCorrectIdx !== -1) {
+                        newQ.correct_answer = `${prefixes[newCorrectIdx]} ${rawCorrect}`;
+                    }
+                    
+                    finalSelection.push(newQ);
+                });
+            }
+            if (finalSelection.length === TARGET_QUESTION_COUNT) break;
+        }
+        return finalSelection;
+    }
+
+    function startQuiz(isReviewMode = false) {
+        isCurrentReviewMode = isReviewMode; 
+        const nameInput = document.getElementById('username-input').value.trim();
+        currentNickname = nameInput || "匿名玩家";
+        
+        if (isReviewMode && wrongQuestionsToReview.length > 0) {
+            // 錯題複習模式：重新打亂錯題的選項再考一次
+            selectedQuestions = wrongQuestionsToReview.map(q => {
+                let newQ = { ...q, options: [...q.options] };
+                let rawOptions = newQ.options.map(opt => opt.replace(/^\([A-E]\)\s*/, '').trim());
+                let rawCorrect = newQ.correct_answer.replace(/^\([A-E]\)\s*/, '').trim();
+
+                let hasAllOrNone = false;
+                let lastOptText = "";
+                let lastOptIndex = rawOptions.length - 1;
+                if (rawOptions[lastOptIndex].includes("以上皆非") || rawOptions[lastOptIndex].includes("以上皆是")) {
+                    hasAllOrNone = true;
+                    lastOptText = rawOptions.pop();
+                }
+
+                for (let i = rawOptions.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [rawOptions[i], rawOptions[j]] = [rawOptions[j], rawOptions[i]];
+                }
+
+                if (hasAllOrNone) { rawOptions.push(lastOptText); }
+
+                const prefixes = ["(A)", "(B)", "(C)", "(D)", "(E)"];
+                newQ.options = rawOptions.map((opt, idx) => `${prefixes[idx]} ${opt}`);
+                let newCorrectIdx = rawOptions.indexOf(rawCorrect);
+                if (newCorrectIdx !== -1) { newQ.correct_answer = `${prefixes[newCorrectIdx]} ${rawCorrect}`; }
+                return newQ;
+            });
+        } else {
+            // 全新模式
+            selectedQuestions = prepareQuestions(); 
+        }
+
+        userAnswers = new Array(selectedQuestions.length).fill(null);
+        currentQuestionIndex = 0;
+        startTime = Date.now();
+        
+        showPage('page-quiz');
+        updateTimerDisplay();
+        clearInterval(timerInterval);
+        timerInterval = setInterval(updateTimerDisplay, 1000);
+        renderQuestion();
+    }
+
+    function updateTimerDisplay() {
+        const elapsed = Math.floor((Date.now() - startTime) / 1000);
+        const remaining = Math.max(0, QUIZ_DURATION_SECONDS - elapsed);
+        document.getElementById('timer-text').textContent = '剩餘時間：' + formatTime(remaining);
+        if (remaining <= 0) { clearInterval(timerInterval); submitQuiz(true); }
+    }
+
+    function renderQuestion() {
+        document.getElementById('error-msg').textContent = ''; 
+        const qData = selectedQuestions[currentQuestionIndex];
+        let displayQuestionText = qData.question.includes('. ') ? qData.question.split('. ')[1] : qData.question;
+        
+        document.getElementById('question-text').innerHTML = `Q${currentQuestionIndex + 1}. ${displayQuestionText.replace(/\n/g, '<br>')}`;
+
+        const optionsArea = document.getElementById('options-area');
+        optionsArea.innerHTML = '';
+        qData.options.forEach((optionText, index) => {
+            const optionId = 'opt' + index;
+            const isChecked = userAnswers[currentQuestionIndex] === optionText ? 'checked' : '';
+            const label = document.createElement('label');
+            label.htmlFor = optionId;
+            label.innerHTML = `<input type="radio" id="${optionId}" name="current_q" value="${optionText}" ${isChecked}>${optionText}`;
+            optionsArea.appendChild(label);
+        });
+
+        document.getElementById('progress-text').textContent = `第 ${currentQuestionIndex + 1} 題／共 ${selectedQuestions.length} 題`;
+        document.getElementById('btn-prev').style.display = currentQuestionIndex === 0 ? 'none' : 'inline-block';
+        document.getElementById('btn-next').textContent = currentQuestionIndex === selectedQuestions.length - 1 ? '提交答案' : '下一題';
+    }
+
+    function saveCurrentAnswer() {
+        const selectedOption = document.querySelector(`input[name="current_q"]:checked`);
+        if (selectedOption) {
+            userAnswers[currentQuestionIndex] = selectedOption.value;
+            return true;
+        }
+        return false;
+    }
+
+    function nextQuestion() {
+        if (!saveCurrentAnswer()) { document.getElementById('error-msg').textContent = "請先選擇一個答案！"; return; }
+        if (currentQuestionIndex < selectedQuestions.length - 1) {
+            currentQuestionIndex++; renderQuestion();
+        } else {
+            submitQuiz(false);
+        }
+    }
+
+    function prevQuestion() {
+        saveCurrentAnswer();
+        if (currentQuestionIndex > 0) { currentQuestionIndex--; renderQuestion(); }
+    }
+
+    function submitQuiz(isTimeout = false) {
+        clearInterval(timerInterval);
+        saveCurrentAnswer();
+        const totalTimeTaken = Math.floor((Date.now() - startTime) / 1000);
+        
+        let score = 0;
+        let strengthSet = new Set();
+        let weaknessSet = new Set();
+        const detailsArea = document.getElementById('details-area');
+        detailsArea.innerHTML = '';
+        
+        let currentWrongDetails = []; 
+        wrongQuestionsToReview = []; 
+
+        selectedQuestions.forEach((q, idx) => {
+            const userAnswer = userAnswers[idx];
+            const isCorrect = (userAnswer === q.correct_answer);
+            const displayUserAns = userAnswer ? userAnswer : '未作答';
+            const displayQuestion = q.question.includes('. ') ? q.question.split('. ')[1] : q.question;
+
+            if (isCorrect) {
+                score++;
+                strengthSet.add(q.logic_design);
+            } else {
+                weaknessSet.add(q.logic_design);
+                wrongQuestionsToReview.push(q);
+                currentWrongDetails.push({ qText: displayQuestion, userAns: displayUserAns, correctAns: q.correct_answer });
+            }
+
+            const statusMark = isCorrect ? "<span class='correct-text'>✔ 正確</span>" : "<span class='wrong-text'>✘ 錯誤</span>";
+            detailsArea.innerHTML += `
+                <div class="result-item">
+                    <h4>第 ${idx + 1} 題：${displayQuestion.replace(/\n/g, '<br>')}</h4>
+                    <p>您的作答： ${displayUserAns} &nbsp;&nbsp; ${statusMark}</p>
+                    <p>正確答案： <span class="correct-text">${q.correct_answer}</span></p>
+                    <div class="explanation"><strong>詳細解析：</strong><br>${q.explanation.replace(/\n/g, '<br>')}</div>
+                </div>`;
+        });
+
+        weaknessSet.forEach(item => { if(strengthSet.has(item)) strengthSet.delete(item); });
+        document.getElementById('strength-list').innerHTML = strengthSet.size > 0 ? [...strengthSet].map(s => `<li>${s}</li>`).join('') : '<li>無 (請繼續加油！)</li>';
+        document.getElementById('weakness-list').innerHTML = weaknessSet.size > 0 ? [...weaknessSet].map(w => `<li>${w}</li>`).join('') : '<li>無 (觀念非常清晰！)</li>';
+
+        const timeoutMsg = isTimeout ? '<span style="color:#e74c3c;">(時間到自動交卷)</span> ' : '';
+        const modeTitle = isCurrentReviewMode ? '【錯題補考】' : `【${currentNickname}】`;
+        document.getElementById('final-score').innerHTML = `${timeoutMsg}${modeTitle} 得分：${score} / ${selectedQuestions.length}`;
+        
+        let timeText = `作答花費時間：${formatTime(totalTimeTaken)}`;
+        if (isCurrentReviewMode) {
+            timeText += '<br><span style="color:#e67e22; font-size:0.95em; font-weight:bold;">(註：錯題補考模式成績不計入排行榜與歷史紀錄)</span>';
+        }
+        document.getElementById('final-time').innerHTML = timeText;
+
+        const reviewBtn = document.getElementById('btn-review-wrong');
+        if (wrongQuestionsToReview.length > 0) {
+            reviewBtn.style.display = 'inline-block';
+            reviewBtn.innerHTML = `針對錯題補考 (${wrongQuestionsToReview.length}題)`;
+        } else {
+            reviewBtn.style.display = 'none';
+        }
+
+        if (!isCurrentReviewMode) {
+            saveToLeaderboard(currentNickname, score, totalTimeTaken);
+            saveToHistory(score, selectedQuestions.length, totalTimeTaken, currentWrongDetails);
+            
+            // ========== 新增：將成績上傳至 Django 後台 ==========
+            const postData = {
+                nickname: currentNickname,
+                score: score
+            };
+
+            fetch("http://127.0.0.1:8000/api/quiz/submit/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(postData)
+            })
+            .then(response => response.json())
+            .then(result => {
+                console.log("Django 後台成功接收紀錄:", result);
+            })
+            .catch(error => {
+                console.error("無法連線至 Django 後台 (可能是單機測試模式):", error);
+            });
+            // ====================================================
+        }
+        
+        showPage('page-result');
+    }
+
+    function saveToLeaderboard(nickname, score, timeSeconds) {
+        const today = new Date();
+        const dateStr = `${today.getFullYear()}/${String(today.getMonth()+1).padStart(2, '0')}/${String(today.getDate()).padStart(2, '0')} ${String(today.getHours()).padStart(2, '0')}:${String(today.getMinutes()).padStart(2, '0')}`;
+        const record = { name: nickname, date: dateStr, score: score, time: timeSeconds };
+        
+        let leaderboard = JSON.parse(localStorage.getItem('quizLeaderboard_final_v2')) || [];
+        leaderboard.push(record);
+        leaderboard.sort((a, b) => { if (b.score !== a.score) return b.score - a.score; return a.time - b.time; });
+        localStorage.setItem('quizLeaderboard_final_v2', JSON.stringify(leaderboard.slice(0, 10)));
+    }
+
+    function renderLeaderboard() {
+        const tbody = document.getElementById('leaderboard-body');
+        tbody.innerHTML = '';
+        
+        let leaderboard = JSON.parse(localStorage.getItem('quizLeaderboard_final_v2')) || [];
+        
+        if (leaderboard.length === 0) { 
+            tbody.innerHTML = '<tr><td colspan="5" style="color: #7f8c8d;">目前尚無測驗紀錄</td></tr>'; 
+            return; 
+        }
+
+        leaderboard.forEach((record, index) => {
+            let rankDisplay = index + 1;
+            if(index === 0) rankDisplay = '🥇 1';
+            if(index === 1) rankDisplay = '🥈 2';
+            if(index === 2) rankDisplay = '🥉 3';
+            tbody.innerHTML += `
+                <tr>
+                    <td><strong>${rankDisplay}</strong></td>
+                    <td><span style="color:#2c3e50; font-weight:600;">${record.name}</span></td>
+                    <td>${record.date}</td>
+                    <td style="color: #27ae60; font-weight: bold;">${record.score}</td>
+                    <td>${formatTime(record.time)}</td>
+                </tr>`;
+        });
+    }
+
+    function saveToHistory(score, totalQs, timeSeconds, wrongDetails) {
+        const today = new Date();
+        const dateStr = `${today.getFullYear()}/${String(today.getMonth()+1).padStart(2, '0')}/${String(today.getDate()).padStart(2, '0')} ${String(today.getHours()).padStart(2, '0')}:${String(today.getMinutes()).padStart(2, '0')}`;
+        
+        const historyRecord = {
+            date: dateStr,
+            score: score,
+            total: totalQs,
+            time: timeSeconds,
+            wrongDetails: wrongDetails
+        };
+
+        let history = JSON.parse(localStorage.getItem('quizPersonalHistory_final_v2')) || [];
+        history.unshift(historyRecord); 
+        localStorage.setItem('quizPersonalHistory_final_v2', JSON.stringify(history));
+    }
+
+    function renderHistory() {
+        const container = document.getElementById('history-container');
+        let history = JSON.parse(localStorage.getItem('quizPersonalHistory_final_v2')) || [];
+        container.innerHTML = '';
+
+        if (history.length === 0) {
+            container.innerHTML = '<p style="text-align:center; color:#7f8c8d;">您目前還沒有測驗紀錄哦！</p>';
+            return;
+        }
+
+        history.forEach((record, idx) => {
+            let wrongHtml = '';
+            if (record.wrongDetails.length === 0) {
+                wrongHtml = '<p style="color:#27ae60; font-weight:bold;">太厲害了！本次測驗全對，毫無弱點！🎉</p>';
+            } else {
+                wrongHtml = `<p style="font-weight:bold; color:#c0392b; margin-bottom:5px;">錯題紀錄 (${record.wrongDetails.length}題)：</p><ul class="history-wrong-list">`;
+                record.wrongDetails.forEach(w => {
+                    wrongHtml += `<li><strong>Q:</strong> ${w.qText.replace(/\n/g, '<br>')}<br>
+                                  <span style="color:#555;">你的作答：${w.userAns}</span> | 
+                                  <span style="color:#27ae60; font-weight:bold;">正解：${w.correctAns}</span></li>`;
+                });
+                wrongHtml += '</ul>';
+            }
+
+            container.innerHTML += `
+                <div class="history-card">
+                    <div class="history-header">
+                        <h4>作答時間：${record.date}</h4>
+                        <div>
+                            <span style="color:#2980b9; font-weight:bold; margin-right:15px;">得分：${record.score} / ${record.total}</span>
+                            <span style="color:#7f8c8d; font-size:0.9em;">耗時：${formatTime(record.time)}</span>
+                        </div>
+                    </div>
+                    ${wrongHtml}
+                </div>
+            `;
+        });
+    }
+</script>
+</body>
+</html>
